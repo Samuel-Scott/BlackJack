@@ -4,6 +4,7 @@ import tkinter as tk
 from random import shuffle
 from PIL import ImageTk, Image
 
+
 title_font = ("Verdana", 16)
 
 
@@ -22,7 +23,7 @@ class Game(tk.Tk):
         self.frames = {}
 
         # create frames
-        for F in (MainMenu, gamePage):
+        for F in (MainMenu, gamePage, showGame):
 
             frame = F(container, self)
 
@@ -85,16 +86,79 @@ class gamePage(tk.Frame):
         self.img = ImageTk.PhotoImage(pil_img.resize((700, 600), Image.ANTIALIAS))
         self.bg = self.canvas.create_image(0,0, anchor=tk.NW, image=self.img)
 
-        #Text Labels
+        #Deal Button
+        self.dealbutt = tk.Button(self.canvas, text="Deal", font=("Verdana", 12), command=lambda: dealCards(controller))
+        self.dealbutt.place(x=320, y=300)
+
+        #initialize bets total
+        self.bet_total = 0
+        self.balance = 1000
+
+        #Bet Buttons
+        self.bet1 = tk.Button(self.canvas,text="$1", width=3, height=1, command = lambda: addBet(self,1))
+        self.bet1.place(x=30, y=500)
+        self.bet5 = tk.Button(self.canvas,text="$5",width=3, height=1, command = lambda:addBet(self,5))
+        self.bet5.place(x=65, y=500)
+        self.bet25 = tk.Button(self.canvas,text="$25",width=3, height=1, command = lambda:addBet(self,25))
+        self.bet25.place(x=100, y=500)
+        self.bet100 = tk.Button(self.canvas,text="$100",width=3, height=1, command = lambda:addBet(self,100))
+        self.bet100.place(x=135, y=500)
+
+        #Balance label
+        balancetext = self.canvas.create_text(550, 500, anchor="nw")
+        self.canvas.itemconfig(balancetext, text=self.balance, font=("Verdana", 12), fill="white")
 
 
-        dealtext = self.canvas.create_text(270, 500, anchor="nw")
-        self.canvas.itemconfig(dealtext, text="Deal", font=("Verdana", 12), fill="white")
+        #Summing total bets
+        def addBet(self, amt):
+            self.bet_total = self.bet_total + amt
+            self.balance = self.balance - amt
+            print(self.bet_total) #REMOVE
+            print(self.balance) #REMOVE
+
+            self.canvas.itemconfig(balancetext, text=self.balance, font=("Verdana", 12), fill="white")
+
+        #dealCards function randomly shuffles a deck of cards
+        #and returns 14 cards (14 cards allows for up to 7
+        #cards being dealt to both the dealer and player)
+        def dealCards(controller):
+            deckrange = list(range(0,52))
+
+            def Shuffle():
+                deckorder = shuffle(deckrange)
+                return deckorder
+
+            def pullCards(amt):
+                deckorder = Shuffle()
+                cardskey = []
+                for i in range(amt):
+                    cardskey.append(deckrange.pop())
+
+                return cardskey
+
+            global cards
+            cards = pullCards(14) #pulls 14 cards in order of shuffle
+            controller.show_frame(showGame)
+
+class showGame(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        #bg canvas img
+        self.canvas = tk.Canvas(self, width=700, height=600)
+        self.canvas.pack()
+
+        pil_img = Image.open("Images\\blackjack_background.jpg")
+        self.img = ImageTk.PhotoImage(pil_img.resize((700, 600), Image.ANTIALIAS))
+        self.bg = self.canvas.create_image(0,0, anchor=tk.NW, image=self.img)
 
 
 
 
 
+        #USE FOR TEXT SOMEWHERE
+        #dealtext = self.canvas.create_text(270, 500, anchor="nw")
+        #self.canvas.itemconfig(dealtext, text="Deal", font=("Verdana", 12), fill="white")
 
 
 class Login(tk.Frame):
