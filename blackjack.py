@@ -3,6 +3,7 @@
 import tkinter as tk
 from random import shuffle
 from PIL import ImageTk, Image
+from getCards import getNum
 
 
 title_font = ("Verdana", 16)
@@ -88,7 +89,7 @@ class gamePage(tk.Frame):
 
         #Deal Button
         self.dealbutt = tk.Button(self.canvas, text="Deal", font=("Verdana", 12), command=lambda: dealCards(controller))
-        self.dealbutt.place(x=320, y=300)
+        self.dealbutt.place(x=320, y=500)
 
         #initialize bets total
         self.bet_total = 0
@@ -106,17 +107,20 @@ class gamePage(tk.Frame):
 
         #Balance label
         balancetext = self.canvas.create_text(550, 500, anchor="nw")
-        self.canvas.itemconfig(balancetext, text=self.balance, font=("Verdana", 12), fill="white")
+        self.canvas.itemconfig(balancetext, text="Balance: " + str(self.balance), font=("Verdana", 12), fill="white")
 
+        #Bet amount label
+        bettext = self.canvas.create_text(317, 450, anchor="nw")
+        self.canvas.itemconfig(bettext, text="Bet: " +str(self.bet_total), font=("Verdana", 12), fill="white")
 
         #Summing total bets
         def addBet(self, amt):
             self.bet_total = self.bet_total + amt
             self.balance = self.balance - amt
-            print(self.bet_total) #REMOVE
-            print(self.balance) #REMOVE
 
-            self.canvas.itemconfig(balancetext, text=self.balance, font=("Verdana", 12), fill="white")
+            #Print updated balance
+            self.canvas.itemconfig(balancetext, text="Balance: " + str(self.balance), font=("Verdana", 12), fill="white")
+            self.canvas.itemconfig(bettext, text="Bet: " +str(self.bet_total), font=("Verdana", 12), fill="white")
 
         #dealCards function randomly shuffles a deck of cards
         #and returns 14 cards (14 cards allows for up to 7
@@ -138,7 +142,39 @@ class gamePage(tk.Frame):
 
             global cards
             cards = pullCards(14) #pulls 14 cards in order of shuffle
-            controller.show_frame(showGame)
+
+            #Remove Deal button when pressed
+            self.dealbutt.destroy()
+
+            #Disable bet Buttons
+            self.bet1.configure(state="disabled")
+            self.bet5.configure(state="disabled")
+            self.bet25.configure(state="disabled")
+            self.bet100.configure(state="disabled")
+
+            #Hit and Stand Buttons
+            self.hitbutt = tk.Button(self.canvas, text="Hit", width=7, height=2, command = lambda: hitCard())
+            self.hitbutt.place(x=290, y=500)
+            self.standbutt = tk.Button(self.canvas, text="Stand", width=7, height=2, command = lambda: standCard())
+            self.standbutt.place(x=350, y=500)
+
+            #Display Cards
+            card_img = Image.open("Images\\PlayingCard.png")
+            self.cardimg = ImageTk.PhotoImage(card_img.resize((100,150), Image.ANTIALIAS))
+            self.bg = self.canvas.create_image(200,200, anchor=tk.NW, image=self.cardimg)
+
+            #PLAYER CARD 1
+            x = getNum()
+            print(x)
+
+
+            #DEALER CARD 1
+
+
+            #PLAYER CARD 2
+
+
+            #DEALER CARD 2
 
 class showGame(tk.Frame):
     def __init__(self, parent, controller):

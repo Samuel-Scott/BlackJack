@@ -1,0 +1,7 @@
+import tkinter as tk
+from PIL import ImageTk, Image
+import random as rnd
+
+
+def getNum():
+    x = rnd.randint(1,5)
