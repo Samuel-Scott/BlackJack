@@ -1,9 +1,9 @@
 # new game menu
 #
 import tkinter as tk
-from random import shuffle
+from random import *
 from PIL import ImageTk, Image
-from getCards import getNum
+from getCards import getCardPath, getValue
 
 
 title_font = ("Verdana", 16)
@@ -88,7 +88,7 @@ class gamePage(tk.Frame):
         self.bg = self.canvas.create_image(0,0, anchor=tk.NW, image=self.img)
 
         #Deal Button
-        self.dealbutt = tk.Button(self.canvas, text="Deal", font=("Verdana", 12), command=lambda: dealCards(controller))
+        self.dealbutt = tk.Button(self.canvas, text="Deal", font=("Verdana", 12), state="disabled", command=lambda: dealCards(controller))
         self.dealbutt.place(x=320, y=500)
 
         #initialize bets total
@@ -122,6 +122,11 @@ class gamePage(tk.Frame):
             self.canvas.itemconfig(balancetext, text="Balance: " + str(self.balance), font=("Verdana", 12), fill="white")
             self.canvas.itemconfig(bettext, text="Bet: " +str(self.bet_total), font=("Verdana", 12), fill="white")
 
+            #Enable deal button if bet has been placed
+            if self.bet_total > 0:
+                self.dealbutt.config(state="normal")
+
+
         #dealCards function randomly shuffles a deck of cards
         #and returns 14 cards (14 cards allows for up to 7
         #cards being dealt to both the dealer and player)
@@ -142,6 +147,8 @@ class gamePage(tk.Frame):
 
             global cards
             cards = pullCards(14) #pulls 14 cards in order of shuffle
+            for i in range(len(cards)):
+                print(cards[i])
 
             #Remove Deal button when pressed
             self.dealbutt.destroy()
@@ -152,29 +159,80 @@ class gamePage(tk.Frame):
             self.bet25.configure(state="disabled")
             self.bet100.configure(state="disabled")
 
-            #Hit and Stand Buttons
+            #Hit and Stand Buttons, show once cards are dealt
             self.hitbutt = tk.Button(self.canvas, text="Hit", width=7, height=2, command = lambda: hitCard())
-            self.hitbutt.place(x=290, y=500)
+            self.hitbutt.after(2500, lambda: self.hitbutt.place(x=290, y=500))
             self.standbutt = tk.Button(self.canvas, text="Stand", width=7, height=2, command = lambda: standCard())
-            self.standbutt.place(x=350, y=500)
+            self.standbutt.after(2500, lambda: self.standbutt.place(x=350, y=500))
 
-            #Display Cards
-            card_img = Image.open("Images\\PlayingCard.png")
-            self.cardimg = ImageTk.PhotoImage(card_img.resize((100,150), Image.ANTIALIAS))
-            self.bg = self.canvas.create_image(200,200, anchor=tk.NW, image=self.cardimg)
+            #------------------Cards Display and Counting---------------------#
+            self.player_cardtot = 0
+            self.dealer_cardtot = 0
+
 
             #PLAYER CARD 1
-            x = getNum()
-            print(x)
+            card_p1 = Image.open(getCardPath(cards[0]))
+            self.cardimgp1 = ImageTk.PhotoImage(card_p1.resize((100,150), Image.ANTIALIAS))
+            self.canvas.after(750, lambda: self.canvas.create_image(250,250, anchor=tk.NW, image=self.cardimgp1))
+            self.player_cardtot += getValue(cards[0])
 
-
-            #DEALER CARD 1
-
+            #DEALER CARD 1 (NO SHOW)
+            card_d1 = Image.open("Images\\Cards\\gray_back.png")
+            self.cardimgd1 = ImageTk.PhotoImage(card_d1.resize((100,150), Image.ANTIALIAS))
+            self.canvas.after(1250, lambda: self.canvas.create_image(250,50, anchor=tk.NW, image=self.cardimgd1))
+            self.dealer_cardtot += getValue(cards[1])
 
             #PLAYER CARD 2
-
+            card_p2 = Image.open(getCardPath(cards[2]))
+            self.cardimgp2 = ImageTk.PhotoImage(card_p2.resize((100,150), Image.ANTIALIAS))
+            self.canvas.after(1750, lambda: self.canvas.create_image(350,250, anchor=tk.NW, image=self.cardimgp2))
+            self.player_cardtot += getValue(cards[2])
 
             #DEALER CARD 2
+            card_d2 = Image.open(getCardPath(cards[3]))
+            self.cardimgd2 = ImageTk.PhotoImage(card_d2.resize((100,150), Image.ANTIALIAS))
+            self.canvas.after(2250, lambda: self.canvas.create_image(350,50, anchor=tk.NW, image=self.cardimgd2))
+            self.dealer_cardtot += getValue(cards[3])
+
+            #Display card total
+            cardtottext = self.canvas.create_text(315, 410, anchor="nw")
+            self.canvas.after(2500, lambda: self.canvas.itemconfig(cardtottext, text="Total: " +str(self.player_cardtot)
+                                                                                    , font=("Verdana", 12), fill="white"))
+            self.hit_times = 0
+
+            self.hitsdic = {1:"hit1", 2:"hit2", 3:"hit3", 4:"hit4"} #make dic of variable names
+
+            # Add card and update cards total
+            def hitCard():
+
+
+                #initialize counters
+                self.hit_times += 1
+                cardpull = self.hit_times + 3
+
+                placex = 375 + (self.hit_times - 1)*40 #place cards beside each other
+                card_p3 = Image.open(getCardPath(cards[cardpull]))
+                self.hitsdic[self.hit_times] = ImageTk.PhotoImage(card_p3.resize((100,150), Image.ANTIALIAS))
+                self.canvas.after(1000, lambda: self.canvas.create_image(placex,250, anchor=tk.NW, image=self.hitsdic[self.hit_times]))
+                self.player_cardtot += getValue(cards[cardpull])
+
+                #check if player has ace, if total is >21, change ace value to 1
+                checkcard = 0
+                for i in range(cardpull):
+                    if getValue(cards[checkcard]) == 11 and self.player_cardtot > 21:
+                        self.player_cardtot = self.player_cardtot - 10
+                    if checkcard<4:
+                        checkcard+=2
+                    else:
+                        checkcard+=1
+
+
+                self.canvas.after(1000, lambda: self.canvas.itemconfig(cardtottext, text="Total: " +str(self.player_cardtot),
+                                                                                        font=("Verdana", 12), fill="white"))
+
+            def standCard():
+                print("test")
+
 
 class showGame(tk.Frame):
     def __init__(self, parent, controller):
@@ -187,10 +245,6 @@ class showGame(tk.Frame):
         pil_img = Image.open("Images\\blackjack_background.jpg")
         self.img = ImageTk.PhotoImage(pil_img.resize((700, 600), Image.ANTIALIAS))
         self.bg = self.canvas.create_image(0,0, anchor=tk.NW, image=self.img)
-
-
-
-
 
         #USE FOR TEXT SOMEWHERE
         #dealtext = self.canvas.create_text(270, 500, anchor="nw")
