@@ -5,6 +5,12 @@ from random import *
 from PIL import ImageTk, Image
 from getCards import getCardPath, getValue
 
+#------------------TO-DO LIST--------------------#
+#Add bust functionality
+#Add stand function
+#dealer hit cards
+#Gain money for winning
+#
 
 title_font = ("Verdana", 16)
 
@@ -131,7 +137,7 @@ class gamePage(tk.Frame):
         #and returns 14 cards (14 cards allows for up to 7
         #cards being dealt to both the dealer and player)
         def dealCards(controller):
-            deckrange = list(range(0,52))
+            deckrange = list(range(1,52))
 
             def Shuffle():
                 deckorder = shuffle(deckrange)
@@ -147,8 +153,8 @@ class gamePage(tk.Frame):
 
             global cards
             cards = pullCards(14) #pulls 14 cards in order of shuffle
-            for i in range(len(cards)):
-                print(cards[i])
+            #for i in range(len(cards)):
+            #    print(cards[i])
 
             #Remove Deal button when pressed
             self.dealbutt.destroy()
@@ -169,12 +175,14 @@ class gamePage(tk.Frame):
             self.player_cardtot = 0
             self.dealer_cardtot = 0
 
+            self.player_cards = {} #create dic to hold player card values
 
             #PLAYER CARD 1
             card_p1 = Image.open(getCardPath(cards[0]))
             self.cardimgp1 = ImageTk.PhotoImage(card_p1.resize((100,150), Image.ANTIALIAS))
             self.canvas.after(750, lambda: self.canvas.create_image(250,250, anchor=tk.NW, image=self.cardimgp1))
             self.player_cardtot += getValue(cards[0])
+            self.player_cards[1] = getValue(cards[0])
 
             #DEALER CARD 1 (NO SHOW)
             card_d1 = Image.open("Images\\Cards\\gray_back.png")
@@ -187,6 +195,7 @@ class gamePage(tk.Frame):
             self.cardimgp2 = ImageTk.PhotoImage(card_p2.resize((100,150), Image.ANTIALIAS))
             self.canvas.after(1750, lambda: self.canvas.create_image(350,250, anchor=tk.NW, image=self.cardimgp2))
             self.player_cardtot += getValue(cards[2])
+            self.player_cards[2] = getValue(cards[2])
 
             #DEALER CARD 2
             card_d2 = Image.open(getCardPath(cards[3]))
@@ -202,6 +211,7 @@ class gamePage(tk.Frame):
 
             self.hitsdic = {1:"hit1", 2:"hit2", 3:"hit3", 4:"hit4"} #make dic of variable names
 
+
             # Add card and update cards total
             def hitCard():
 
@@ -215,23 +225,47 @@ class gamePage(tk.Frame):
                 self.hitsdic[self.hit_times] = ImageTk.PhotoImage(card_p3.resize((100,150), Image.ANTIALIAS))
                 self.canvas.after(1000, lambda: self.canvas.create_image(placex,250, anchor=tk.NW, image=self.hitsdic[self.hit_times]))
                 self.player_cardtot += getValue(cards[cardpull])
+                self.player_cards[cardpull] = getValue(cards[cardpull])
+                for i in self.player_cards:
+                    print(self.player_cards[i])
 
                 #check if player has ace, if total is >21, change ace value to 1
                 checkcard = 0
-                for i in range(cardpull):
-                    if getValue(cards[checkcard]) == 11 and self.player_cardtot > 21:
-                        self.player_cardtot = self.player_cardtot - 10
-                    if checkcard<4:
-                        checkcard+=2
-                    else:
-                        checkcard+=1
+                if getValue(cards[checkcard]) == 11 and self.player_cardtot > 21:
+                    self.player_cardtot = self.player_cardtot - 10
+                    self.acefound = True
+                if checkcard<4:
+                    checkcard+=2
+                else:
+                    checkcard+=1
 
 
                 self.canvas.after(1000, lambda: self.canvas.itemconfig(cardtottext, text="Total: " +str(self.player_cardtot),
                                                                                         font=("Verdana", 12), fill="white"))
 
+                #If player total is greater than 21
+                if self.player_cardtot > 21:
+                    playerBust()
+
+
+
             def standCard():
                 print("test")
+
+
+            def playerBust():
+                busttext = self.canvas.create_text(310, 398, anchor="nw")
+                self.canvas.after(1500, lambda: self.canvas.itemconfig(busttext, text="Bust", font=("Verdana", 30), fill="red"))
+
+                #Destroy images and text
+                self.canvas.after(1500, lambda: self.canvas.itemconfig(cardtottext, text=""))
+                self.canvas.delete("self.cardimgp1")
+                self.canvas.delete("self.cardimgp2")
+                self.canvas.delete("self.cardimgd1")
+                self.canvas.delete("self.cardimgd2")
+                #for i in range(len(self.hitsdic)):
+                #    self.canvas.delete(self.hitsdic[i])
+                controller.show_frame(gamePage)
 
 
 class showGame(tk.Frame):

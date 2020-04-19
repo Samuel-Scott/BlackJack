@@ -31,7 +31,7 @@ def setCard(card):
         cardset = card - 13
     elif card > 26 and card<=39:
         cardset = card - 26
-    elif card > 39 and card <= 52:
+    elif card > 39 and card <= 53:
         cardset = card - 39
 
     return cardset
@@ -46,5 +46,3 @@ def setVal(cardset):
         cardval = 10
 
     return cardval
-
-print(getValue(41))
